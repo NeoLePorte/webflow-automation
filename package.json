@@ -1,0 +1,29 @@
+{
+  "name": "webflow-automation-cli",
+  "version": "0.0.1",
+  "description": "quick way to download and commit webflow exports to github",
+  "main": "bin/index.js",
+  "scripts": {
+    "dev": "node bin/index.js"
+  },
+  "keywords": [],
+  "author": "Anthony Blanton",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.15.7",
+    "@babel/core": "^7.15.5",
+    "@babel/preset-env": "^7.15.6",
+    "nodemon": "^2.0.13"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.9",
+    "dotenv": "^11.0.0",
+    "fs-extra": "^10.0.0",
+    "puppeteer": "^10.4.0",
+    "shelljs": "^0.8.5",
+    "simple-git": "^2.48.0"
+  },
+  "bin": {
+    "auto-webflow": "./bin/index.js"
+  }
+}
