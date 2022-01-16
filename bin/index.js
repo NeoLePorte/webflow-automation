@@ -9,62 +9,56 @@ const userEmail = process.env.USER_EMAIL;
 const userPass = process.env.USER_PASSWORD;
 const gitUsername = process.env.USER_NAME;
 const gitPAT = process.env.USER_PAT;
+const gHubEmail = process.env.GHUB_EMAIL;
+const gHubUserName = process.env.GHUB_USERNAME;
 const git = simpleGit();
+const width = 1200;
+const height = 900;
 
-const autoweb = async () => {
-  //way to wait for multiple selectors.
-  async function waitForSelectors(selectors, frame) {
-    for (const selector of selectors) {
-      try {
-        return await waitForSelector(selector, frame);
-      } catch (err) {
-        console.error(err);
-      }
+async function waitForSelectors(selectors, frame) {
+  for (const selector of selectors) {
+    try {
+      return await waitForSelector(selector, frame);
+    } catch (err) {
+      console.error(err);
     }
-    throw new Error(
-      "Could not find element for selectors: " + JSON.stringify(selectors)
-    );
   }
+  throw new Error(
+    "Could not find element for selectors: " + JSON.stringify(selectors)
+  );
+}
 
-  async function waitForSelector(selector, frame) {
-    if (selector instanceof Array) {
-      let element = null;
-      for (const part of selector) {
-        if (!element) {
-          element = await frame.waitForSelector(part);
-        } else {
-          element = await element.$(part);
-        }
-        if (!element) {
-          throw new Error("Could not find element: " + part);
-        }
-        element = (
-          await element.evaluateHandle((el) =>
-            el.shadowRoot ? el.shadowRoot : el
-          )
-        ).asElement();
+async function waitForSelector(selector, frame) {
+  if (selector instanceof Array) {
+    let element = null;
+    for (const part of selector) {
+      if (!element) {
+        element = await frame.waitForSelector(part);
+      } else {
+        element = await element.$(part);
       }
       if (!element) {
-        throw new Error("Could not find element: " + selector.join("|"));
+        throw new Error("Could not find element: " + part);
       }
-      return element;
+      element = (
+        await element.evaluateHandle((el) =>
+          el.shadowRoot ? el.shadowRoot : el
+        )
+      ).asElement();
     }
-    const element = await frame.waitForSelector(selector);
     if (!element) {
-      throw new Error("Could not find element: " + selector);
+      throw new Error("Could not find element: " + selector.join("|"));
     }
     return element;
   }
-
-  const width = 1200;
-  const height = 900;
-
-  defaultViewport: {
-    width, height;
+  const element = await frame.waitForSelector(selector);
+  if (!element) {
+    throw new Error("Could not find element: " + selector);
   }
-
-  //--------------------------------------------------------------------------------------------------------------------------------
-
+  return element;
+}
+//------------------------puppeteer start-----------------------------------//
+const autoweb = async () => {
   const browser = await puppeteer.launch({
     headless: true,
     args: [`--window-size=${width},${height}`],
@@ -73,6 +67,7 @@ const autoweb = async () => {
       height,
     },
   });
+
   //creates 'download' dir for the zip to be saved in.
   const page = await browser.newPage();
   const downloadPath = path.resolve("../download");
@@ -178,16 +173,13 @@ const autoweb = async () => {
           offset: { x: 27.2249755859375, y: 5.0999755859375 },
         });
         console.log("downloading");
-        //this setTimeout can be removed and replaced with something that reads file status
+        //this setTimeout can be removed and replaced with something that reads file status----start file extraction/github flow..
         setTimeout(async () => {
           //
           let fileNames = fs.readdirSync("../download/");
-          console.log(fileNames);
           // chooses first file in the directory
           const fileData = fs.readFileSync(`../download/${fileNames[1]}`);
-          console.log(fileNames);
-
-          //extracts download into the 'download' dir.
+          //extracts download into the 'download/clone/${project}' dir.
           const zip = new AdmZip(fileData);
           await fs.emptyDir(`../download/clone/${project}`);
           zip.extractAllTo(
@@ -197,24 +189,14 @@ const autoweb = async () => {
           );
 
           fileNames = fs.readdirSync("../download/clone/");
-          // Set up GitHub url like this so no manual entry of user pass needed
-          // const gitHubUrl = `https://${gitUsername}:${gitPAT}@github.com/${gitUsername}/${project}`;
-
-          // add local git config like username and email
           try {
-            // Updating with the New directory
-            
-            console.log("Updated working directory is: " + process.cwd());
-            // await git.init();
-            git.addConfig("user.email", "devcrvft@gmail.com");
-            git.addConfig("user.name", "devcrvftwerk");
-            //not sure this is a good route.
-            // await git.addRemote("origin", gitHubUrl);
+            git.addConfig("user.email", `${gHubEmail}`);
+            git.addConfig("user.name", `${gHubUserName}`);
           } catch (err) {
             // Printing error if any occurs
             console.error("error occured while " + "setting up git: " + err);
           }
-          
+
           // Add all files for commit
           await git.add(`./${project}`).then(
             (addSuccess) => {
@@ -235,22 +217,11 @@ const autoweb = async () => {
               console.log(`failed commmit ${failed}`);
             }
           );
-          // pull from remote
-          // await git
-          //   .pull("origin", "master", ["--allow-unrelated-histories"])
-          //   .then(
-          //     (pullSuccess) => {
-          //       console.log("files pulled");
-          //       console.log(pullSuccess);
-          //     },
-          //     (failedPull) => {
-          //       console.log(`pulling files failed ${failedPull}`);
-          //     }
-          //   );
+
           // Finally push to online repository.
           await git.push("origin", "master").then(
             (success) => {
-              console.log(`repo successfully pushed: ${success}`);
+              console.log(`repo successfully pushed: ${project}`);
             },
             (failed) => {
               console.log(`repo push failed: ${failed}`);
@@ -258,8 +229,9 @@ const autoweb = async () => {
           );
 
           // this is used to clear the dir after git push.
-          // await fs.emptyDir("../download");
-          // console.log("delete success! finished!");
+          await fs.emptyDir("../download");
+          console.log("delete success! finished!");
+          process.exit();
         }, 7000);
       } catch (error) {
         console.error(`This is the error: ${error}`);
