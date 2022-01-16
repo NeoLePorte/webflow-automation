@@ -93,7 +93,7 @@ const autoweb = async () => {
   });
 
   rl.question("Please enter the project name: ", async (project) => {
-    rl.question("Please enter the commit message", async (commitMessage) => {
+    rl.question("Please enter the commit message: ", async (commitMessage) => {
       console.log("Thank You! 😃");
       rl.close();
       try {
