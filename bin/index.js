@@ -18,7 +18,15 @@ const gHubUserName = process.env.GHUB_USERNAME;
 const git = simpleGit();
 const width = 1200;
 const height = 900;
-const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+
+const bar1 = new cliProgress.SingleBar({
+  format: chalk.green('CLI Progress |') + chalk.blue('{bar}') + chalk.green('| {percentage}% || {value}/{total} Chunks || ETA: {eta}s'),
+  barCompleteChar: '\u2588',
+  barIncompleteChar: '\u2591',
+  hideCursor: true
+});
+
+// const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.rect);
 
 const greeting = chalk.white.bold("Webflow exports easy mode");
 
@@ -117,7 +125,7 @@ const autoweb = async () => {
       rl.question(
         chalk.green.bold("Please enter the commit message: "),
         async (commitMessage) => {
-          console.log("Thank You! 😃");
+          console.log(chalk.yellow("Thank You! 😃"));
           rl.close();
           bar1.start(110, 0);
           try {
@@ -230,7 +238,6 @@ const autoweb = async () => {
               // Add all files for commit
               await git.add(`./${project}`).then(
                 (addSuccess) => {
-                  console.log(addSuccess);
                   bar1.update(90);
                 },
                 (failedAdd) => {
@@ -240,8 +247,10 @@ const autoweb = async () => {
               // Commit files
               await git.commit(commitMessage).then(
                 (successCommit) => {
-                  console.log(successCommit);
                   bar1.update(100);
+                  setTimeout(() => {
+                    console.log(successCommit);
+                  }, 4000);
                 },
                 (failed) => {
                   console.log(`failed commmit ${failed}`);
@@ -261,7 +270,6 @@ const autoweb = async () => {
 
               // this is used to clear the dir after git push.
               await fs.emptyDir("../download");
-              console.log("delete success! finished!");
               process.exit();
             }, 7000);
           } catch (error) {
