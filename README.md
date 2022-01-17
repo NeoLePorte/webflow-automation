@@ -1,8 +1,8 @@
 This is Webflow-Automation-cli. A simple tool to export and commit to github from webflow.
 
 to install:<br>
-clone project
-<code>npm install -g .</code> to install globally
+clone project<br>
+<code>npm install -g .</code> to install globally<br>
 Run by typing "webflow-automation"
 
 usage:<br> 
@@ -10,6 +10,7 @@ Just type the project name(lower case and seperated by a -. ex. "ralle-homes")
 Then type commit message and hit enter
 Thats it!
 
+***Important!***<br>
 .env:<br> 
 a .env file will need to be created and placed at the root of the project that includes:<br> 
 USER_NAME= // this will be your git username<br>
