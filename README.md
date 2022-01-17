@@ -6,9 +6,9 @@ clone project<br>
 Run by typing "webflow-automation"
 
 usage:<br> 
-Just type the project name(lower case and seperated by a -. ex. "ralle-homes")
-Then type commit message and hit enter
-Thats it!
+Just type the project name(lower case and seperated by a -. ex. "ralle-homes")<br>
+Then type commit message and hit enter<br>
+Thats it!<br>
 
 ***Important!***<br>
 .env:<br> 
