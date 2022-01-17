@@ -1,10 +1,12 @@
 #!/usr/bin/env node
-require("dotenv").config();
-const fs = require("fs-extra");
-const path = require("path");
-const AdmZip = require("adm-zip");
-const puppeteer = require("puppeteer");
-const simpleGit = require("simple-git");
+import 'dotenv/config'
+import fs from "fs-extra";
+import path from "path";
+import AdmZip from "adm-zip";
+import puppeteer from "puppeteer";
+import simpleGit from "simple-git";
+import readline from "readline";
+import cliProgress from "cli-progress";
 const userEmail = process.env.USER_EMAIL;
 const userPass = process.env.USER_PASSWORD;
 const gitUsername = process.env.USER_NAME;
@@ -14,6 +16,24 @@ const gHubUserName = process.env.GHUB_USERNAME;
 const git = simpleGit();
 const width = 1200;
 const height = 900;
+import chalk from "chalk";
+import boxen from "boxen";
+const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+
+const greeting = chalk.white.bold("Webflow exports easy mode");
+
+const boxenOptions = {
+ padding: 1,
+ margin: 1,
+ borderStyle: "round",
+ borderColor: "green",
+ backgroundColor: "#555555",
+ title: chalk.blue.bold('Webflow Automation'),
+ titleAlignment: 'center'
+};
+const msgBox = boxen(greeting, boxenOptions);
+
+console.log(msgBox);
 
 async function waitForSelectors(selectors, frame) {
   for (const selector of selectors) {
@@ -77,31 +97,33 @@ const autoweb = async () => {
   });
 
   //connects to webflow and starts login process
-  await page.goto("https://webflow.com/dashboard?org=Redtag-Digital");
   try {
-    console.log("surfing to webflow");
+    await page.goto("https://webflow.com/dashboard?org=Redtag-Digital");
+    console.log(chalk.blue("surfing to webflow"));
     await page.waitForSelector(".abcRioButtonContentWrapper");
     await page.click(".abcRioButtonContentWrapper");
   } catch (error) {
     console.error(`This is the error: ${error}`);
   }
 
-  const readline = require("readline");
+  
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
-  rl.question("Please enter the project name: ", async (project) => {
-    rl.question("Please enter the commit message: ", async (commitMessage) => {
+  rl.question(chalk.green.bold("Please enter the project name: "), async (project) => {
+    rl.question(chalk.green.bold("Please enter the commit message: "), async (commitMessage) => {
       console.log("Thank You! 😃");
       rl.close();
+      bar1.start(110, 0);
       try {
         await git.clone(
           `https://${gitUsername}:${gitPAT}@github.com/${gitUsername}/${project}`,
           `../download/clone`
         );
-        git.cwd(`../download/clone`);
+        git.cwd(`../download/clone`); //changes working directory.
+        bar1.update(10);
       } catch (err) {
         console.log(`nothing to clone because: ${err}`);
       }
@@ -113,7 +135,8 @@ const autoweb = async () => {
         //this can be hard coded to speed up the whole process sans login.
         await popup.keyboard.type(userEmail);
         await popup.keyboard.press("Enter");
-        console.log("username entered");
+        bar1.update(20);
+
 
         popup = pages[pages.length - 1]; // the popup should be the last page opened. this is done again for the password box.
 
@@ -122,13 +145,15 @@ const autoweb = async () => {
           await popup.keyboard.type(userPass);
           await popup.keyboard.press("Enter");
         }, 4000);
-        console.log("password entered");
+        bar1.update(30);
+
 
         //waits for projects to load and opens user typed project.
         try {
           await page.waitForSelector(".hover-settings-container");
 
           page.click(`div[site-name=${project}]`);
+          bar1.update(40);
         } catch (error) {
           console.error(error);
         }
@@ -137,9 +162,10 @@ const autoweb = async () => {
         //this setTime out length is because of the excessive time it takes to load the files in webflow. It will still sometimes fail to load ontime even with this.
         setTimeout(async () => {
           try {
-            console.log("export dropdown detected");
+
             await page.click(".bem-TopBar_Body_ExportButton");
-            console.log("export dropdown clicked");
+
+            bar1.update(50);
           } catch (error) {
             console.error(error);
           }
@@ -157,7 +183,8 @@ const autoweb = async () => {
           targetPage
         );
         await prepare.click({ offset: { x: 0.875, y: -1.9000244140625 } });
-        console.log("preparing download");
+
+        bar1.update(60);
 
         // clicks download.
         const element = await waitForSelectors(
@@ -172,7 +199,8 @@ const autoweb = async () => {
         await element.click({
           offset: { x: 27.2249755859375, y: 5.0999755859375 },
         });
-        console.log("downloading");
+
+        bar1.update(70);
         //this setTimeout can be removed and replaced with something that reads file status----start file extraction/github flow..
         setTimeout(async () => {
           //
@@ -181,12 +209,12 @@ const autoweb = async () => {
           const fileData = fs.readFileSync(`../download/${fileNames[1]}`);
           //extracts download into the 'download/clone/${project}' dir.
           const zip = new AdmZip(fileData);
-          await fs.emptyDir(`../download/clone/${project}`);
+          await fs.emptyDir(`../download/clone/${project}`);//as of now the cloned project files are removed and the webflow download extracts into that folder. This makes the git flow easier.
           zip.extractAllTo(
             /*target path*/ `../download/clone/${project}`,
             /*overwrite*/ true,
-            console.log("Extracted")
           );
+          bar1.update(80)
 
           fileNames = fs.readdirSync("../download/clone/");
           try {
@@ -200,8 +228,8 @@ const autoweb = async () => {
           // Add all files for commit
           await git.add(`./${project}`).then(
             (addSuccess) => {
-              console.log("files added");
               console.log(addSuccess);
+              bar1.update(90)
             },
             (failedAdd) => {
               console.log(`adding files failed ${failedAdd}`);
@@ -210,8 +238,8 @@ const autoweb = async () => {
           // Commit files
           await git.commit(commitMessage).then(
             (successCommit) => {
-              console.log(`files committed! Message: ${commitMessage}`);
               console.log(successCommit);
+              bar1.update(100)
             },
             (failed) => {
               console.log(`failed commmit ${failed}`);
@@ -221,6 +249,7 @@ const autoweb = async () => {
           // Finally push to online repository.
           await git.push("origin", "master").then(
             (success) => {
+              bar1.update(110)
               console.log(`repo successfully pushed: ${project}`);
             },
             (failed) => {

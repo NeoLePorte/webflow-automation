@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "quick way to download and commit webflow exports to github",
   "main": "bin/index.js",
+  "type": "module",
   "scripts": {
     "dev": "node bin/index.js"
   },
@@ -17,6 +18,9 @@
   },
   "dependencies": {
     "adm-zip": "^0.5.9",
+    "boxen": "^6.2.1",
+    "chalk": "^5.0.0",
+    "cli-progress": "^3.10.0",
     "dotenv": "^11.0.0",
     "fs-extra": "^10.0.0",
     "puppeteer": "^10.4.0",
