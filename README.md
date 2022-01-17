@@ -6,7 +6,7 @@ clone project<br>
 Run by typing "webflow-automation"
 
 usage:<br> 
-Before you start, create a repo on github that is named the same as the webflow project. at the moment this must be done. plan on adding repo creation into the flow.
+Before you start, create a repo on github that is named the same as the webflow project. at the moment this must be done. plan on adding repo creation into the flow.<br>
 Just type the project name(lower case and seperated by a -. ex. "ralle-homes")<br>
 Then type commit message and hit enter<br>
 Thats it!<br>
