@@ -261,7 +261,7 @@ const autoweb = async () => {
               await git.push("origin", "master").then(
                 (success) => {
                   bar1.update(110);
-                  console.log(`repo successfully pushed: ${project}`);
+                  console.log(chalk.bold.magentaBright(`  repo successfully pushed: ${project}`));
                 },
                 (failed) => {
                   console.log(`repo push failed: ${failed}`);
